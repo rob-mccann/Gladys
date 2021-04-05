@@ -8,11 +8,15 @@ const logger = require('../../utils/logger');
  * @example
  * sceneManager.execute('test');
  */
-function execute(sceneSelector, scope) {
+function execute(sceneSelector, scope = {}) {
   try {
     if (!this.scenes[sceneSelector]) {
       throw new Error(`Scene with selector ${sceneSelector} not found.`);
     }
+
+    scope.sceneCircularDependencyPreventionList = scope.sceneCircularDependencyPreventionList || new Set();
+    scope.sceneCircularDependencyPreventionList.add(sceneSelector);
+
     this.queue.push(async () => {
       try {
         await executeActions(this, this.scenes[sceneSelector].actions, scope);

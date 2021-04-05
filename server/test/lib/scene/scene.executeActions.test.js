@@ -539,4 +539,52 @@ describe('scene.executeActions', () => {
     );
     assert.calledWith(message.sendToUser, 'pepper', 'Temperature in the living room is 15 °C.');
   });
+
+  it('should execute action scene.start', async () => {
+    const stateManager = new StateManager(event);
+
+    const execute = fake.resolves(undefined);
+
+    const scope = {
+      sceneCircularDependencyPreventionList: new Set(),
+    };
+
+    await executeActions(
+      { stateManager, event, execute },
+      [
+        [
+          {
+            type: ACTIONS.SCENE.START,
+            scene: 'other_scene_selector',
+          },
+        ],
+      ],
+      scope,
+    );
+    assert.calledWith(execute, 'other_scene_selector', scope);
+  });
+
+  it('should not execute action scene.start when the scene has already been called as part of this chain', async () => {
+    const stateManager = new StateManager(event);
+
+    const execute = fake.resolves(undefined);
+
+    const scope = {
+      sceneCircularDependencyPreventionList: new Set(['other_scene_selector']),
+    };
+
+    await executeActions(
+      { stateManager, event, execute },
+      [
+        [
+          {
+            type: ACTIONS.SCENE.START,
+            scene: 'other_scene_selector',
+          },
+        ],
+      ],
+      scope,
+    );
+    assert.notCalled(execute);
+  });
 });
